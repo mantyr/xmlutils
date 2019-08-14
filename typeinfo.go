@@ -119,6 +119,9 @@ func structFieldInfo(typ reflect.Type, f *reflect.StructField) (*fieldInfo, erro
 	if i := strings.Index(tag, " "); i >= 0 {
 		finfo.xmlns, tag = tag[:i], tag[i+1:]
 	}
+	if i := strings.Index(tag, ":"); i >= 0 {
+		tag = tag[i+1:]
+	}
 
 	// Parse flags.
 	tokens := strings.Split(tag, ",")
