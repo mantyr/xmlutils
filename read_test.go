@@ -2,9 +2,10 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package xml
+package xmlutils
 
 import (
+	"encoding/xml"
 	"io"
 	"reflect"
 	"strings"
@@ -81,7 +82,7 @@ not being used from outside intra_region_diff.py.
 </summary></entry></feed> 	   `
 
 type Feed struct {
-	XMLName Name      `xml:"http://www.w3.org/2005/Atom feed"`
+	XMLName xml.Name      `xml:"http://www.w3.org/2005/Atom feed"`
 	Title   string    `xml:"title"`
 	ID      string    `xml:"id"`
 	Link    []Link    `xml:"link"`
@@ -117,7 +118,7 @@ type Text struct {
 }
 
 var atomFeed = Feed{
-	XMLName: Name{"http://www.w3.org/2005/Atom", "feed"},
+	XMLName: xml.Name{"http://www.w3.org/2005/Atom", "feed"},
 	Title:   "Code Review - My issues",
 	Link: []Link{
 		{Rel: "alternate", Href: "http://codereview.appspot.com/"},
@@ -344,7 +345,7 @@ const withoutNameTypeData = `
 <Test3 Attr="OK" />`
 
 type TestThree struct {
-	XMLName Name   `xml:"Test3"`
+	XMLName xml.Name   `xml:"Test3"`
 	Attr    string `xml:",attr"`
 }
 
@@ -627,7 +628,7 @@ type MyCharData struct {
 	body string
 }
 
-func (m *MyCharData) UnmarshalXML(d *Decoder, start StartElement) error {
+func (m *MyCharData) UnmarshalXML(d *Decoder, start xml.StartElement) error {
 	for {
 		t, err := d.Token()
 		if err == io.EOF { // found end of element
@@ -636,7 +637,7 @@ func (m *MyCharData) UnmarshalXML(d *Decoder, start StartElement) error {
 		if err != nil {
 			return err
 		}
-		if char, ok := t.(CharData); ok {
+		if char, ok := t.(xml.CharData); ok {
 			m.body += string(char)
 		}
 	}
@@ -645,7 +646,7 @@ func (m *MyCharData) UnmarshalXML(d *Decoder, start StartElement) error {
 
 var _ Unmarshaler = (*MyCharData)(nil)
 
-func (m *MyCharData) UnmarshalXMLAttr(attr Attr) error {
+func (m *MyCharData) UnmarshalXMLAttr(attr xml.Attr) error {
 	panic("must not call")
 }
 
@@ -653,7 +654,7 @@ type MyAttr struct {
 	attr string
 }
 
-func (m *MyAttr) UnmarshalXMLAttr(attr Attr) error {
+func (m *MyAttr) UnmarshalXMLAttr(attr xml.Attr) error {
 	m.attr = attr.Value
 	return nil
 }

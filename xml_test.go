@@ -2,9 +2,10 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package xml
+package xmlutils
 
 import (
+	"encoding/xml"
 	"bytes"
 	"fmt"
 	"io"
@@ -33,91 +34,91 @@ const testInput = `
 
 var testEntity = map[string]string{"何": "What", "is-it": "is it?"}
 
-var rawTokens = []Token{
-	CharData("\n"),
-	ProcInst{"xml", []byte(`version="1.0" encoding="UTF-8"`)},
-	CharData("\n"),
-	Directive(`DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+var rawTokens = []xml.Token{
+	xml.CharData("\n"),
+	xml.ProcInst{"xml", []byte(`version="1.0" encoding="UTF-8"`)},
+	xml.CharData("\n"),
+	xml.Directive(`DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"`),
-	CharData("\n"),
-	StartElement{Name{"", "body"}, []Attr{{Name{"xmlns", "foo"}, "ns1"}, {Name{"", "xmlns"}, "ns2"}, {Name{"xmlns", "tag"}, "ns3"}}},
-	CharData("\n  "),
-	StartElement{Name{"", "hello"}, []Attr{{Name{"", "lang"}, "en"}}},
-	CharData("World <>'\" 白鵬翔"),
-	EndElement{Name{"", "hello"}},
-	CharData("\n  "),
-	StartElement{Name{"", "query"}, []Attr{}},
-	CharData("What is it?"),
-	EndElement{Name{"", "query"}},
-	CharData("\n  "),
-	StartElement{Name{"", "goodbye"}, []Attr{}},
-	EndElement{Name{"", "goodbye"}},
-	CharData("\n  "),
-	StartElement{Name{"", "outer"}, []Attr{{Name{"foo", "attr"}, "value"}, {Name{"xmlns", "tag"}, "ns4"}}},
-	CharData("\n    "),
-	StartElement{Name{"", "inner"}, []Attr{}},
-	EndElement{Name{"", "inner"}},
-	CharData("\n  "),
-	EndElement{Name{"", "outer"}},
-	CharData("\n  "),
-	StartElement{Name{"tag", "name"}, []Attr{}},
-	CharData("\n    "),
-	CharData("Some text here."),
-	CharData("\n  "),
-	EndElement{Name{"tag", "name"}},
-	CharData("\n"),
-	EndElement{Name{"", "body"}},
-	Comment(" missing final newline "),
+	xml.CharData("\n"),
+	xml.StartElement{xml.Name{"", "body"}, []xml.Attr{{xml.Name{"xmlns", "foo"}, "ns1"}, {xml.Name{"", "xmlns"}, "ns2"}, {xml.Name{"xmlns", "tag"}, "ns3"}}},
+	xml.CharData("\n  "),
+	xml.StartElement{xml.Name{"", "hello"}, []xml.Attr{{xml.Name{"", "lang"}, "en"}}},
+	xml.CharData("World <>'\" 白鵬翔"),
+	xml.EndElement{xml.Name{"", "hello"}},
+	xml.CharData("\n  "),
+	xml.StartElement{xml.Name{"", "query"}, []xml.Attr{}},
+	xml.CharData("What is it?"),
+	xml.EndElement{xml.Name{"", "query"}},
+	xml.CharData("\n  "),
+	xml.StartElement{xml.Name{"", "goodbye"}, []xml.Attr{}},
+	xml.EndElement{xml.Name{"", "goodbye"}},
+	xml.CharData("\n  "),
+	xml.StartElement{xml.Name{"", "outer"}, []xml.Attr{{xml.Name{"foo", "attr"}, "value"}, {xml.Name{"xmlns", "tag"}, "ns4"}}},
+	xml.CharData("\n    "),
+	xml.StartElement{xml.Name{"", "inner"}, []xml.Attr{}},
+	xml.EndElement{xml.Name{"", "inner"}},
+	xml.CharData("\n  "),
+	xml.EndElement{xml.Name{"", "outer"}},
+	xml.CharData("\n  "),
+	xml.StartElement{xml.Name{"tag", "name"}, []xml.Attr{}},
+	xml.CharData("\n    "),
+	xml.CharData("Some text here."),
+	xml.CharData("\n  "),
+	xml.EndElement{xml.Name{"tag", "name"}},
+	xml.CharData("\n"),
+	xml.EndElement{xml.Name{"", "body"}},
+	xml.Comment(" missing final newline "),
 }
 
-var cookedTokens = []Token{
-	CharData("\n"),
-	ProcInst{"xml", []byte(`version="1.0" encoding="UTF-8"`)},
-	CharData("\n"),
-	Directive(`DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+var cookedTokens = []xml.Token{
+	xml.CharData("\n"),
+	xml.ProcInst{"xml", []byte(`version="1.0" encoding="UTF-8"`)},
+	xml.CharData("\n"),
+	xml.Directive(`DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"`),
-	CharData("\n"),
-	StartElement{Name{"ns2", "body"}, []Attr{{Name{"xmlns", "foo"}, "ns1"}, {Name{"", "xmlns"}, "ns2"}, {Name{"xmlns", "tag"}, "ns3"}}},
-	CharData("\n  "),
-	StartElement{Name{"ns2", "hello"}, []Attr{{Name{"", "lang"}, "en"}}},
-	CharData("World <>'\" 白鵬翔"),
-	EndElement{Name{"ns2", "hello"}},
-	CharData("\n  "),
-	StartElement{Name{"ns2", "query"}, []Attr{}},
-	CharData("What is it?"),
-	EndElement{Name{"ns2", "query"}},
-	CharData("\n  "),
-	StartElement{Name{"ns2", "goodbye"}, []Attr{}},
-	EndElement{Name{"ns2", "goodbye"}},
-	CharData("\n  "),
-	StartElement{Name{"ns2", "outer"}, []Attr{{Name{"ns1", "attr"}, "value"}, {Name{"xmlns", "tag"}, "ns4"}}},
-	CharData("\n    "),
-	StartElement{Name{"ns2", "inner"}, []Attr{}},
-	EndElement{Name{"ns2", "inner"}},
-	CharData("\n  "),
-	EndElement{Name{"ns2", "outer"}},
-	CharData("\n  "),
-	StartElement{Name{"ns3", "name"}, []Attr{}},
-	CharData("\n    "),
-	CharData("Some text here."),
-	CharData("\n  "),
-	EndElement{Name{"ns3", "name"}},
-	CharData("\n"),
-	EndElement{Name{"ns2", "body"}},
-	Comment(" missing final newline "),
+	xml.CharData("\n"),
+	xml.StartElement{xml.Name{"ns2", "body"}, []xml.Attr{{xml.Name{"xmlns", "foo"}, "ns1"}, {xml.Name{"", "xmlns"}, "ns2"}, {xml.Name{"xmlns", "tag"}, "ns3"}}},
+	xml.CharData("\n  "),
+	xml.StartElement{xml.Name{"ns2", "hello"}, []xml.Attr{{xml.Name{"", "lang"}, "en"}}},
+	xml.CharData("World <>'\" 白鵬翔"),
+	xml.EndElement{xml.Name{"ns2", "hello"}},
+	xml.CharData("\n  "),
+	xml.StartElement{xml.Name{"ns2", "query"}, []xml.Attr{}},
+	xml.CharData("What is it?"),
+	xml.EndElement{xml.Name{"ns2", "query"}},
+	xml.CharData("\n  "),
+	xml.StartElement{xml.Name{"ns2", "goodbye"}, []xml.Attr{}},
+	xml.EndElement{xml.Name{"ns2", "goodbye"}},
+	xml.CharData("\n  "),
+	xml.StartElement{xml.Name{"ns2", "outer"}, []xml.Attr{{xml.Name{"ns1", "attr"}, "value"}, {xml.Name{"xmlns", "tag"}, "ns4"}}},
+	xml.CharData("\n    "),
+	xml.StartElement{xml.Name{"ns2", "inner"}, []xml.Attr{}},
+	xml.EndElement{xml.Name{"ns2", "inner"}},
+	xml.CharData("\n  "),
+	xml.EndElement{xml.Name{"ns2", "outer"}},
+	xml.CharData("\n  "),
+	xml.StartElement{xml.Name{"ns3", "name"}, []xml.Attr{}},
+	xml.CharData("\n    "),
+	xml.CharData("Some text here."),
+	xml.CharData("\n  "),
+	xml.EndElement{xml.Name{"ns3", "name"}},
+	xml.CharData("\n"),
+	xml.EndElement{xml.Name{"ns2", "body"}},
+	xml.Comment(" missing final newline "),
 }
 
 const testInputAltEncoding = `
 <?xml version="1.0" encoding="x-testing-uppercase"?>
 <TAG>VALUE</TAG>`
 
-var rawTokensAltEncoding = []Token{
-	CharData("\n"),
-	ProcInst{"xml", []byte(`version="1.0" encoding="x-testing-uppercase"`)},
-	CharData("\n"),
-	StartElement{Name{"", "tag"}, []Attr{}},
-	CharData("value"),
-	EndElement{Name{"", "tag"}},
+var rawTokensAltEncoding = []xml.Token{
+	xml.CharData("\n"),
+	xml.ProcInst{"xml", []byte(`version="1.0" encoding="x-testing-uppercase"`)},
+	xml.CharData("\n"),
+	xml.StartElement{xml.Name{"", "tag"}, []xml.Attr{}},
+	xml.CharData("value"),
+	xml.EndElement{xml.Name{"", "tag"}},
 }
 
 var xmlInput = []string{
@@ -184,40 +185,40 @@ const nonStrictInput = `
 <tag>&0a;</tag>
 `
 
-var nonStrictTokens = []Token{
-	CharData("\n"),
-	StartElement{Name{"", "tag"}, []Attr{}},
-	CharData("non&entity"),
-	EndElement{Name{"", "tag"}},
-	CharData("\n"),
-	StartElement{Name{"", "tag"}, []Attr{}},
-	CharData("&unknown;entity"),
-	EndElement{Name{"", "tag"}},
-	CharData("\n"),
-	StartElement{Name{"", "tag"}, []Attr{}},
-	CharData("&#123"),
-	EndElement{Name{"", "tag"}},
-	CharData("\n"),
-	StartElement{Name{"", "tag"}, []Attr{}},
-	CharData("&#zzz;"),
-	EndElement{Name{"", "tag"}},
-	CharData("\n"),
-	StartElement{Name{"", "tag"}, []Attr{}},
-	CharData("&なまえ3;"),
-	EndElement{Name{"", "tag"}},
-	CharData("\n"),
-	StartElement{Name{"", "tag"}, []Attr{}},
-	CharData("&lt-gt;"),
-	EndElement{Name{"", "tag"}},
-	CharData("\n"),
-	StartElement{Name{"", "tag"}, []Attr{}},
-	CharData("&;"),
-	EndElement{Name{"", "tag"}},
-	CharData("\n"),
-	StartElement{Name{"", "tag"}, []Attr{}},
-	CharData("&0a;"),
-	EndElement{Name{"", "tag"}},
-	CharData("\n"),
+var nonStrictTokens = []xml.Token{
+	xml.CharData("\n"),
+	xml.StartElement{xml.Name{"", "tag"}, []xml.Attr{}},
+	xml.CharData("non&entity"),
+	xml.EndElement{xml.Name{"", "tag"}},
+	xml.CharData("\n"),
+	xml.StartElement{xml.Name{"", "tag"}, []xml.Attr{}},
+	xml.CharData("&unknown;entity"),
+	xml.EndElement{xml.Name{"", "tag"}},
+	xml.CharData("\n"),
+	xml.StartElement{xml.Name{"", "tag"}, []xml.Attr{}},
+	xml.CharData("&#123"),
+	xml.EndElement{xml.Name{"", "tag"}},
+	xml.CharData("\n"),
+	xml.StartElement{xml.Name{"", "tag"}, []xml.Attr{}},
+	xml.CharData("&#zzz;"),
+	xml.EndElement{xml.Name{"", "tag"}},
+	xml.CharData("\n"),
+	xml.StartElement{xml.Name{"", "tag"}, []xml.Attr{}},
+	xml.CharData("&なまえ3;"),
+	xml.EndElement{xml.Name{"", "tag"}},
+	xml.CharData("\n"),
+	xml.StartElement{xml.Name{"", "tag"}, []xml.Attr{}},
+	xml.CharData("&lt-gt;"),
+	xml.EndElement{xml.Name{"", "tag"}},
+	xml.CharData("\n"),
+	xml.StartElement{xml.Name{"", "tag"}, []xml.Attr{}},
+	xml.CharData("&;"),
+	xml.EndElement{xml.Name{"", "tag"}},
+	xml.CharData("\n"),
+	xml.StartElement{xml.Name{"", "tag"}, []xml.Attr{}},
+	xml.CharData("&0a;"),
+	xml.EndElement{xml.Name{"", "tag"}},
+	xml.CharData("\n"),
 }
 
 func TestNonStrictRawToken(t *testing.T) {
@@ -278,7 +279,7 @@ func TestRawTokenAltEncodingNoConverter(t *testing.T) {
 	}
 }
 
-func testRawToken(t *testing.T, d *Decoder, raw string, rawTokens []Token) {
+func testRawToken(t *testing.T, d *Decoder, raw string, rawTokens []xml.Token) {
 	lastEnd := int64(0)
 	for i, want := range rawTokens {
 		start := d.InputOffset()
@@ -289,12 +290,12 @@ func testRawToken(t *testing.T, d *Decoder, raw string, rawTokens []Token) {
 		}
 		if !reflect.DeepEqual(have, want) {
 			var shave, swant string
-			if _, ok := have.(CharData); ok {
+			if _, ok := have.(xml.CharData); ok {
 				shave = fmt.Sprintf("CharData(%q)", have)
 			} else {
 				shave = fmt.Sprintf("%#v", have)
 			}
-			if _, ok := want.(CharData); ok {
+			if _, ok := want.(xml.CharData); ok {
 				swant = fmt.Sprintf("CharData(%q)", want)
 			} else {
 				swant = fmt.Sprintf("%#v", want)
@@ -338,22 +339,22 @@ var nestedDirectivesInput = `
 <!DOCTYPE [<!ENTITY xlt "'<">]>
 `
 
-var nestedDirectivesTokens = []Token{
-	CharData("\n"),
-	Directive(`DOCTYPE [<!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#">]`),
-	CharData("\n"),
-	Directive(`DOCTYPE [<!ENTITY xlt ">">]`),
-	CharData("\n"),
-	Directive(`DOCTYPE [<!ENTITY xlt "<">]`),
-	CharData("\n"),
-	Directive(`DOCTYPE [<!ENTITY xlt '>'>]`),
-	CharData("\n"),
-	Directive(`DOCTYPE [<!ENTITY xlt '<'>]`),
-	CharData("\n"),
-	Directive(`DOCTYPE [<!ENTITY xlt '">'>]`),
-	CharData("\n"),
-	Directive(`DOCTYPE [<!ENTITY xlt "'<">]`),
-	CharData("\n"),
+var nestedDirectivesTokens = []xml.Token{
+	xml.CharData("\n"),
+	xml.Directive(`DOCTYPE [<!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#">]`),
+	xml.CharData("\n"),
+	xml.Directive(`DOCTYPE [<!ENTITY xlt ">">]`),
+	xml.CharData("\n"),
+	xml.Directive(`DOCTYPE [<!ENTITY xlt "<">]`),
+	xml.CharData("\n"),
+	xml.Directive(`DOCTYPE [<!ENTITY xlt '>'>]`),
+	xml.CharData("\n"),
+	xml.Directive(`DOCTYPE [<!ENTITY xlt '<'>]`),
+	xml.CharData("\n"),
+	xml.Directive(`DOCTYPE [<!ENTITY xlt '">'>]`),
+	xml.CharData("\n"),
+	xml.Directive(`DOCTYPE [<!ENTITY xlt "'<">]`),
+	xml.CharData("\n"),
 }
 
 func TestNestedDirectives(t *testing.T) {
@@ -500,10 +501,10 @@ func TestUnquotedAttrs(t *testing.T) {
 	if _, ok := err.(*SyntaxError); ok {
 		t.Errorf("Unexpected error: %v", err)
 	}
-	if token.(StartElement).Name.Local != "tag" {
-		t.Errorf("Unexpected tag name: %v", token.(StartElement).Name.Local)
+	if token.(xml.StartElement).Name.Local != "tag" {
+		t.Errorf("Unexpected tag name: %v", token.(xml.StartElement).Name.Local)
 	}
-	attr := token.(StartElement).Attr[0]
+	attr := token.(xml.StartElement).Attr[0]
 	if attr.Value != "azAZ09:-_" {
 		t.Errorf("Unexpected attribute value: %v", attr.Value)
 	}
@@ -526,10 +527,10 @@ func TestValuelessAttrs(t *testing.T) {
 		if _, ok := err.(*SyntaxError); ok {
 			t.Errorf("Unexpected error: %v", err)
 		}
-		if token.(StartElement).Name.Local != test[1] {
-			t.Errorf("Unexpected tag name: %v", token.(StartElement).Name.Local)
+		if token.(xml.StartElement).Name.Local != test[1] {
+			t.Errorf("Unexpected tag name: %v", token.(xml.StartElement).Name.Local)
 		}
-		attr := token.(StartElement).Attr[0]
+		attr := token.(xml.StartElement).Attr[0]
 		if attr.Value != test[2] {
 			t.Errorf("Unexpected attribute value: %v", attr.Value)
 		}
@@ -541,8 +542,8 @@ func TestValuelessAttrs(t *testing.T) {
 
 func TestCopyTokenCharData(t *testing.T) {
 	data := []byte("same data")
-	var tok1 Token = CharData(data)
-	tok2 := CopyToken(tok1)
+	var tok1 xml.Token = xml.CharData(data)
+	tok2 := xml.CopyToken(tok1)
 	if !reflect.DeepEqual(tok1, tok2) {
 		t.Error("CopyToken(CharData) != CharData")
 	}
@@ -553,16 +554,16 @@ func TestCopyTokenCharData(t *testing.T) {
 }
 
 func TestCopyTokenStartElement(t *testing.T) {
-	elt := StartElement{Name{"", "hello"}, []Attr{{Name{"", "lang"}, "en"}}}
-	var tok1 Token = elt
-	tok2 := CopyToken(tok1)
-	if tok1.(StartElement).Attr[0].Value != "en" {
+	elt := xml.StartElement{xml.Name{"", "hello"}, []xml.Attr{{xml.Name{"", "lang"}, "en"}}}
+	var tok1 xml.Token = elt
+	tok2 := xml.CopyToken(tok1)
+	if tok1.(xml.StartElement).Attr[0].Value != "en" {
 		t.Error("CopyToken overwrote Attr[0]")
 	}
 	if !reflect.DeepEqual(tok1, tok2) {
 		t.Error("CopyToken(StartElement) != StartElement")
 	}
-	tok1.(StartElement).Attr[0] = Attr{Name{"", "lang"}, "de"}
+	tok1.(xml.StartElement).Attr[0] = xml.Attr{xml.Name{"", "lang"}, "de"}
 	if reflect.DeepEqual(tok1, tok2) {
 		t.Error("CopyToken(CharData) uses same buffer.")
 	}
@@ -695,14 +696,14 @@ var directivesWithCommentsInput = `
 <!DOCTYPE <!-> <!> <!----> <!-->--> <!--->--> [<!ENTITY go "Golang"><!-- a comment-->]>
 `
 
-var directivesWithCommentsTokens = []Token{
-	CharData("\n"),
-	Directive(`DOCTYPE [<!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#">]`),
-	CharData("\n"),
-	Directive(`DOCTYPE [<!ENTITY go "Golang">]`),
-	CharData("\n"),
-	Directive(`DOCTYPE <!-> <!>    [<!ENTITY go "Golang">]`),
-	CharData("\n"),
+var directivesWithCommentsTokens = []xml.Token{
+	xml.CharData("\n"),
+	xml.Directive(`DOCTYPE [<!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#">]`),
+	xml.CharData("\n"),
+	xml.Directive(`DOCTYPE [<!ENTITY go "Golang">]`),
+	xml.CharData("\n"),
+	xml.Directive(`DOCTYPE <!-> <!>    [<!ENTITY go "Golang">]`),
+	xml.CharData("\n"),
 }
 
 func TestDirectivesWithComments(t *testing.T) {
@@ -812,8 +813,8 @@ func TestIssue12417(t *testing.T) {
 	}
 }
 
-func tokenMap(mapping func(t Token) Token) func(TokenReader) TokenReader {
-	return func(src TokenReader) TokenReader {
+func tokenMap(mapping func(t xml.Token) xml.Token) func(xml.TokenReader) xml.TokenReader {
+	return func(src xml.TokenReader) xml.TokenReader {
 		return mapper{
 			t: src,
 			f: mapping,
@@ -822,11 +823,11 @@ func tokenMap(mapping func(t Token) Token) func(TokenReader) TokenReader {
 }
 
 type mapper struct {
-	t TokenReader
-	f func(Token) Token
+	t xml.TokenReader
+	f func(xml.Token) xml.Token
 }
 
-func (m mapper) Token() (Token, error) {
+func (m mapper) Token() (xml.Token, error) {
 	tok, err := m.t.Token()
 	if err != nil {
 		return nil, err
@@ -844,14 +845,14 @@ func TestNewTokenDecoderIdempotent(t *testing.T) {
 
 func TestWrapDecoder(t *testing.T) {
 	d := NewDecoder(strings.NewReader(`<quote>[Re-enter Clown with a letter, and FABIAN]</quote>`))
-	m := tokenMap(func(t Token) Token {
+	m := tokenMap(func(t xml.Token) xml.Token {
 		switch tok := t.(type) {
-		case StartElement:
+		case xml.StartElement:
 			if tok.Name.Local == "quote" {
 				tok.Name.Local = "blocking"
 				return tok
 			}
-		case EndElement:
+		case xml.EndElement:
 			if tok.Name.Local == "quote" {
 				tok.Name.Local = "blocking"
 				return tok
@@ -863,7 +864,7 @@ func TestWrapDecoder(t *testing.T) {
 	d = NewTokenDecoder(m(d))
 
 	o := struct {
-		XMLName  Name   `xml:"blocking"`
+		XMLName  xml.Name   `xml:"blocking"`
 		Chardata string `xml:",chardata"`
 	}{}
 
@@ -878,13 +879,13 @@ func TestWrapDecoder(t *testing.T) {
 
 type tokReader struct{}
 
-func (tokReader) Token() (Token, error) {
-	return StartElement{}, nil
+func (tokReader) Token() (xml.Token, error) {
+	return xml.StartElement{}, nil
 }
 
 type Failure struct{}
 
-func (Failure) UnmarshalXML(*Decoder, StartElement) error {
+func (Failure) UnmarshalXML(*Decoder, xml.StartElement) error {
 	return nil
 }
 

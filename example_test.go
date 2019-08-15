@@ -2,13 +2,14 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package xml_test
+package xmlutils_test
 
 import (
-//	"encoding/xml"
-	xml "github.com/mantyr/xmldecoder3"
+	"encoding/xml"
 	"fmt"
 	"os"
+
+	"github.com/mantyr/xmlutils"
 )
 
 func ExampleMarshalIndent() {
@@ -31,7 +32,7 @@ func ExampleMarshalIndent() {
 	v.Comment = " Need more details. "
 	v.Address = Address{"Hanga Roa", "Easter Island"}
 
-	output, err := xml.MarshalIndent(v, "  ", "    ")
+	output, err := xmlutils.MarshalIndent(v, "  ", "    ")
 	if err != nil {
 		fmt.Printf("error: %v\n", err)
 	}
@@ -71,7 +72,7 @@ func ExampleEncoder() {
 	v.Comment = " Need more details. "
 	v.Address = Address{"Hanga Roa", "Easter Island"}
 
-	enc := xml.NewEncoder(os.Stdout)
+	enc := xmlutils.NewEncoder(os.Stdout)
 	enc.Indent("  ", "    ")
 	if err := enc.Encode(v); err != nil {
 		fmt.Printf("error: %v\n", err)
@@ -131,7 +132,7 @@ func ExampleUnmarshal() {
 			<State>Easter Island</State>
 		</Person>
 	`
-	err := xml.Unmarshal([]byte(data), &v)
+	err := xmlutils.Unmarshal([]byte(data), &v)
 	if err != nil {
 		fmt.Printf("error: %v", err)
 		return

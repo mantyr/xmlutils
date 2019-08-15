@@ -1,10 +1,11 @@
-package xml_test
+package xmlutils_test
 
 import (
-	xml "github.com/mantyr/xmldecoder3"
 	"testing"
+	"encoding/xml"
 
 	. "github.com/smartystreets/goconvey/convey"
+	"github.com/mantyr/xmlutils"
 )
 
 type table struct {
@@ -26,7 +27,7 @@ func TestTag(t *testing.T) {
 			Item:  "test",
 			Other: "from-data-id",
 		}
-		result, err := xml.Marshal(v)
+		result, err := xmlutils.Marshal(v)
 		So(err, ShouldBeNil)
 		So(
 			string(result),
@@ -36,7 +37,7 @@ func TestTag(t *testing.T) {
 	})
 	Convey("Проверяем Unmarshal с prefix:tag", t, func() {
 		v := &table{}
-		err := xml.Unmarshal([]byte(data), v)
+		err := xmlutils.Unmarshal([]byte(data), v)
 		So(err, ShouldBeNil)
 		So(
 			v,
@@ -56,7 +57,7 @@ func TestTag(t *testing.T) {
 			Local: "st:table",
 		}
 		v.XMLNS = "http://localhost"
-		result, err := xml.Marshal(v)
+		result, err := xmlutils.Marshal(v)
 		So(err, ShouldBeNil)
 		So(
 			string(result),

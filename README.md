@@ -1,19 +1,18 @@
-# XML Decoder
+# XML utils
 
-[![Build Status](https://travis-ci.org/mantyr/xmldecoder.svg?branch=master)](https://travis-ci.org/mantyr/xmldecoder)
-[![GoDoc](https://godoc.org/github.com/mantyr/xmldecoder?status.png)](http://godoc.org/github.com/mantyr/xmldecoder)
-[![Go Report Card](https://goreportcard.com/badge/github.com/mantyr/xmldecoder?v=4)][goreport]
+[![Build Status](https://travis-ci.org/mantyr/xmlutils.svg?branch=master)](https://travis-ci.org/mantyr/xmlutils)
+[![GoDoc](https://godoc.org/github.com/mantyr/xmlutils?status.png)](http://godoc.org/github.com/mantyr/xmlutils)
+[![Go Report Card](https://goreportcard.com/badge/github.com/mantyr/xmlutils?v=4)][goreport]
 [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE.md)
 
 This don't stable version
 
 + добавлен prefix:tag
 - требуется вынести все структуры в encoding/xml, что бы не конфликтовать с XMLName xml.Name и прочим
-- есть мысль переименовать encodinx/xml или в encoding/customxml
 
 ## Installation
 
-    $ go get -u github.com/mantyr/xmldecoder
+    $ go get -u github.com/mantyr/xmlutils
 
 ## Author
 
@@ -21,6 +20,6 @@ This don't stable version
 
 [mantyr]: https://github.com/mantyr
 
-[build_status]: https://travis-ci.org/mantyr/xmldecoder
-[godoc]:        http://godoc.org/github.com/mantyr/xmldecoder
-[goreport]:     https://goreportcard.com/report/github.com/mantyr/xmldecoder
+[build_status]: https://travis-ci.org/mantyr/xmlutils
+[godoc]:        http://godoc.org/github.com/mantyr/xmlutils
+[goreport]:     https://goreportcard.com/report/github.com/mantyr/xmlutils

@@ -2,10 +2,11 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package xml_test
+package xmlutils_test
 
 import (
-	xml "github.com/mantyr/xmldecoder3"
+	"encoding/xml"
+	"github.com/mantyr/xmlutils"
 	"fmt"
 	"log"
 	"strings"
@@ -19,7 +20,7 @@ const (
 	Zebra
 )
 
-func (a *Animal) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+func (a *Animal) UnmarshalXML(d *xmlutils.Decoder, start xml.StartElement) error {
 	var s string
 	if err := d.DecodeElement(&s, &start); err != nil {
 		return err
@@ -36,7 +37,7 @@ func (a *Animal) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	return nil
 }
 
-func (a Animal) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+func (a Animal) MarshalXML(e *xmlutils.Encoder, start xml.StartElement) error {
 	var s string
 	switch a {
 	default:
@@ -64,7 +65,7 @@ func Example_customMarshalXML() {
 	var zoo struct {
 		Animals []Animal `xml:"animal"`
 	}
-	if err := xml.Unmarshal([]byte(blob), &zoo); err != nil {
+	if err := xmlutils.Unmarshal([]byte(blob), &zoo); err != nil {
 		log.Fatal(err)
 	}
 

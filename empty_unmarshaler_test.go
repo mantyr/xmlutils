@@ -1,11 +1,13 @@
-package xml_test
+package xmlutils_test
 
 import (
-	"fmt"
-	xml "github.com/mantyr/xmldecoder3"
+	"encoding/xml"
 	"testing"
+	"fmt"
 
 	. "github.com/smartystreets/goconvey/convey"
+
+	"github.com/mantyr/xmlutils"
 )
 
 type table2 struct {
@@ -18,7 +20,7 @@ type fio struct {
 	value string
 }
 
-func (f *fio) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+func (f *fio) UnmarshalXML(d *xmlutils.Decoder, start xml.StartElement) error {
 	var data string
 	err := d.DecodeElement(&data, &start)
 	if err != nil {
@@ -34,7 +36,7 @@ func TestEmptyUnmarshaler(t *testing.T) {
 			data := `<st:table xmlns:st="http://localhost"><header:fio></header:fio></st:table>`
 			v := &table2{}
 			v.FIO.value = "test"
-			err := xml.Unmarshal([]byte(data), v)
+			err := xmlutils.Unmarshal([]byte(data), v)
 			So(err, ShouldBeNil)
 			So(
 				v,
@@ -54,7 +56,7 @@ func TestEmptyUnmarshaler(t *testing.T) {
 		Convey("Со значением", func() {
 			data := `<st:table xmlns:st="http://localhost"><header:fio>test</header:fio></st:table>`
 			v := &table2{}
-			err := xml.Unmarshal([]byte(data), v)
+			err := xmlutils.Unmarshal([]byte(data), v)
 			So(err, ShouldBeNil)
 			So(
 				v,

@@ -2,10 +2,10 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package xml
+package xmlutils
 
 import (
-//	"encoding/xml"
+	"encoding/xml"
 	"fmt"
 	"reflect"
 	"strings"
@@ -48,7 +48,7 @@ const (
 var marshalTinfoMap sync.Map // map[reflect.Type]*typeInfo
 var unmarshalTinfoMap sync.Map // map[reflect.Type]*typeInfo
 
-var nameType = reflect.TypeOf(Name{})
+var nameType = reflect.TypeOf(xml.Name{})
 
 type Utils struct {
 	// Marshal

@@ -2,11 +2,10 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package xml_test
+package xmlutils_test
 
 import (
-//	"encoding/xml"
-	xml "github.com/mantyr/xmldecoder3"
+	xml "github.com/mantyr/xmlutils"
 	"fmt"
 	"log"
 	"strings"

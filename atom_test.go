@@ -2,12 +2,15 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package xml
+package xmlutils
 
-import "time"
+import (
+	"encoding/xml"
+	"time"
+)
 
 var atomValue = &Feed{
-	XMLName: Name{"http://www.w3.org/2005/Atom", "feed"},
+	XMLName: xml.Name{"http://www.w3.org/2005/Atom", "feed"},
 	Title:   "Example Feed",
 	Link:    []Link{{Href: "http://example.org/"}},
 	Updated: ParseTime("2003-12-13T18:30:02Z"),
