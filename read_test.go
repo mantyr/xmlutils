@@ -2,28 +2,26 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package xmldecoder
+package xml
 
 import (
-	"encoding/xml"
 	"io"
 	"reflect"
 	"strings"
 	"testing"
 	"time"
-
-	. "github.com/smartystreets/goconvey/convey"
 )
 
 // Stripped down Atom feed data structures.
 
 func TestUnmarshalFeed(t *testing.T) {
-	Convey("TestUnmarshalFeed", t, func() {
-		var f Feed
-		err := Unmarshal([]byte(atomFeedString), &f)
-		So(err, ShouldBeNil)
-		So(f, ShouldResemble, atomFeed)
-	})
+	var f Feed
+	if err := Unmarshal([]byte(atomFeedString), &f); err != nil {
+		t.Fatalf("Unmarshal: %s", err)
+	}
+	if !reflect.DeepEqual(f, atomFeed) {
+		t.Fatalf("have %#v\nwant %#v", f, atomFeed)
+	}
 }
 
 // hget http://codereview.appspot.com/rss/mine/rsc
@@ -83,7 +81,7 @@ not being used from outside intra_region_diff.py.
 </summary></entry></feed> 	   `
 
 type Feed struct {
-	XMLName xml.Name      `xml:"http://www.w3.org/2005/Atom feed"`
+	XMLName Name      `xml:"http://www.w3.org/2005/Atom feed"`
 	Title   string    `xml:"title"`
 	ID      string    `xml:"id"`
 	Link    []Link    `xml:"link"`
@@ -118,16 +116,8 @@ type Text struct {
 	Body string `xml:",chardata"`
 }
 
-func ParseTime(str string) time.Time {
-	t, err := time.Parse(time.RFC3339, str)
-	if err != nil {
-		panic(err)
-	}
-	return t
-}
-
 var atomFeed = Feed{
-	XMLName: xml.Name{"http://www.w3.org/2005/Atom", "feed"},
+	XMLName: Name{"http://www.w3.org/2005/Atom", "feed"},
 	Title:   "Code Review - My issues",
 	Link: []Link{
 		{Rel: "alternate", Href: "http://codereview.appspot.com/"},
@@ -137,8 +127,7 @@ var atomFeed = Feed{
 	Updated: ParseTime("2009-10-04T01:35:58+00:00"),
 	Author: Person{
 		Name:     "rietveld<>",
-//		InnerXML: "<name>rietveld&lt;&gt;</name>",
-		InnerXML: "", // bug
+		InnerXML: "<name>rietveld&lt;&gt;</name>",
 	},
 	Entry: []Entry{
 		{
@@ -149,8 +138,7 @@ var atomFeed = Feed{
 			Updated: ParseTime("2009-10-04T01:35:58+00:00"),
 			Author: Person{
 				Name:     "email-address-removed",
-//				InnerXML: "<name>email-address-removed</name>",
-				InnerXML: "", // bug
+				InnerXML: "<name>email-address-removed</name>",
 			},
 			ID: "urn:md5:134d9179c41f806be79b3a5f7877d19a",
 			Summary: Text{
@@ -197,8 +185,7 @@ the top of feeds.py marked NOTE(rsc).
 			Updated: ParseTime("2009-10-03T23:02:17+00:00"),
 			Author: Person{
 				Name:     "email-address-removed",
-//				InnerXML: "<name>email-address-removed</name>",
-				InnerXML: "", // bug
+				InnerXML: "<name>email-address-removed</name>",
 			},
 			ID: "urn:md5:0a2a4f19bb815101f0ba2904aed7c35a",
 			Summary: Text{
@@ -357,7 +344,7 @@ const withoutNameTypeData = `
 <Test3 Attr="OK" />`
 
 type TestThree struct {
-	XMLName xml.Name   `xml:"Test3"`
+	XMLName Name   `xml:"Test3"`
 	Attr    string `xml:",attr"`
 }
 
@@ -497,6 +484,19 @@ func TestUnmarshalNS(t *testing.T) {
 	}
 }
 
+func TestMarshalNS(t *testing.T) {
+	dst := Tables{"hello", "world"}
+	data, err := Marshal(&dst)
+	if err != nil {
+		t.Fatalf("Marshal: %v", err)
+	}
+	want := `<Tables><table xmlns="http://www.w3.org/TR/html4/">hello</table><table xmlns="http://www.w3schools.com/furniture">world</table></Tables>`
+	str := string(data)
+	if str != want {
+		t.Errorf("have: %q\nwant: %q\n", str, want)
+	}
+}
+
 type TableAttrs struct {
 	TAttr TAttr
 }
@@ -601,11 +601,33 @@ func TestUnmarshalNSAttr(t *testing.T) {
 	}
 }
 
+func TestMarshalNSAttr(t *testing.T) {
+	src := TableAttrs{TAttr{"hello", "world", "en_US", "other1", "other2", "other3", "other4"}}
+	data, err := Marshal(&src)
+	if err != nil {
+		t.Fatalf("Marshal: %v", err)
+	}
+	want := `<TableAttrs><TAttr xmlns:html4="http://www.w3.org/TR/html4/" html4:table="hello" xmlns:furniture="http://www.w3schools.com/furniture" furniture:table="world" xml:lang="en_US" xmlns:_xml="http://golang.org/xml/" _xml:other="other1" xmlns:_xmlfoo="http://golang.org/xmlfoo/" _xmlfoo:other="other2" xmlns:json="http://golang.org/json/" json:other="other3" xmlns:json_1="http://golang.org/2/json/" json_1:other="other4"></TAttr></TableAttrs>`
+	str := string(data)
+	if str != want {
+		t.Errorf("Marshal:\nhave: %#q\nwant: %#q\n", str, want)
+	}
+
+	var dst TableAttrs
+	if err := Unmarshal(data, &dst); err != nil {
+		t.Errorf("Unmarshal: %v", err)
+	}
+
+	if dst != src {
+		t.Errorf("Unmarshal = %q, want %q", dst, src)
+	}
+}
+
 type MyCharData struct {
 	body string
 }
 
-func (m *MyCharData) UnmarshalXML(d *Decoder, start xml.StartElement) error {
+func (m *MyCharData) UnmarshalXML(d *Decoder, start StartElement) error {
 	for {
 		t, err := d.Token()
 		if err == io.EOF { // found end of element
@@ -614,7 +636,7 @@ func (m *MyCharData) UnmarshalXML(d *Decoder, start xml.StartElement) error {
 		if err != nil {
 			return err
 		}
-		if char, ok := t.(xml.CharData); ok {
+		if char, ok := t.(CharData); ok {
 			m.body += string(char)
 		}
 	}
@@ -623,24 +645,7 @@ func (m *MyCharData) UnmarshalXML(d *Decoder, start xml.StartElement) error {
 
 var _ Unmarshaler = (*MyCharData)(nil)
 
-type MyCharData2 struct {
-	body *MyCharData3
-}
-
-type MyCharData3 struct {
-	XMLName xml.Name `xml:"table"`
-	Name string `xml:"name"`
-	Value string `xml:"value"`
-}
-
-func (m *MyCharData2) UnmarshalXML(d *Decoder, start xml.StartElement) error {
-	m.body = &MyCharData3{}
-	return d.Decode(m.body)
-}
-
-var _ Unmarshaler = (*MyCharData2)(nil)
-
-func (m *MyCharData) UnmarshalXMLAttr(attr xml.Attr) error {
+func (m *MyCharData) UnmarshalXMLAttr(attr Attr) error {
 	panic("must not call")
 }
 
@@ -648,12 +653,12 @@ type MyAttr struct {
 	attr string
 }
 
-func (m *MyAttr) UnmarshalXMLAttr(attr xml.Attr) error {
+func (m *MyAttr) UnmarshalXMLAttr(attr Attr) error {
 	m.attr = attr.Value
 	return nil
 }
 
-var _ xml.UnmarshalerAttr = (*MyAttr)(nil)
+var _ UnmarshalerAttr = (*MyAttr)(nil)
 
 type MyStruct struct {
 	Data *MyCharData
@@ -661,34 +666,25 @@ type MyStruct struct {
 
 	Data2 MyCharData
 	Attr2 MyAttr `xml:",attr"`
-
-	Data3 MyCharData2
 }
 
 func TestUnmarshaler(t *testing.T) {
-	Convey("Проверяем Unmarshaler", t, func() {
-		xml := `<?xml version="1.0" encoding="utf-8"?>
-			<MyStruct Attr="attr1" Attr2="attr2">
-			<Data>hello <!-- comment -->world</Data>
-			<Data2>howdy <!-- comment -->world</Data2>
-			<Data3><table><name>name1</name><value>value1</value></table></Data3>
-			</MyStruct>
-		`
-		var m MyStruct
-		err := Unmarshal([]byte(xml), &m)
-		So(err, ShouldBeNil)
-		So(m.Data, ShouldNotBeNil)
-		So(m.Attr, ShouldNotBeNil)
-		So(m.Data.body, ShouldEqual, "hello world")
-		So(m.Attr.attr, ShouldEqual, "attr1")
-		So(m.Attr2.attr, ShouldEqual, "attr2")
-		So(m.Data2.body, ShouldEqual, "howdy world")
-		So(m.Data3.body, ShouldNotBeNil)
-		So(m.Data3.body.Name, ShouldEqual, "name1")
-		So(m.Data3.body.Value, ShouldEqual, "value1")
-	})
-}
+	xml := `<?xml version="1.0" encoding="utf-8"?>
+		<MyStruct Attr="attr1" Attr2="attr2">
+		<Data>hello <!-- comment -->world</Data>
+		<Data2>howdy <!-- comment -->world</Data2>
+		</MyStruct>
+	`
 
+	var m MyStruct
+	if err := Unmarshal([]byte(xml), &m); err != nil {
+		t.Fatal(err)
+	}
+
+	if m.Data == nil || m.Attr == nil || m.Data.body != "hello world" || m.Attr.attr != "attr1" || m.Data2.body != "howdy world" || m.Attr2.attr != "attr2" {
+		t.Errorf("m=%#+v\n", m)
+	}
+}
 
 type Pea struct {
 	Cotelydon string
@@ -792,8 +788,6 @@ type Parent struct {
 	ChildPtr *Child
 	ChildToEmbed
 }
-
-type MyInt int
 
 const (
 	emptyXML = `

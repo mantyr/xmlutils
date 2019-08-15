@@ -1,4 +1,4 @@
-package xmldecoder
+package xml
 
 import (
 	"strings"
