@@ -7,7 +7,9 @@
 
 This don't stable version
 
-- Не работает innerxml
++ добавлен prefix:tag
+- требуется вынести все структуры в encoding/xml, что бы не конфликтовать с XMLName xml.Name и прочим
+- есть мысль переименовать encodinx/xml или в encoding/customxml
 
 ## Installation
 
