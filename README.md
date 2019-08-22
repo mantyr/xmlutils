@@ -15,7 +15,7 @@ This don't stable version
     - Теперь нет необходимости править все реализации xml.Unmarshaler на xmlutils.Unmarshaler
 - [x] Добавить проброс xmlutils.Decoder в xml.Unmarshaler
     - Теперь в не зависимости от того как был запущен Unmarshal (от xml или от xmlutils) у вас есть возможность использовать xmlutils там где это нужно
-- [] Вынести все имеющиеся структуры из форка обратно в encoding/xml
+- [ ] Вынести все имеющиеся структуры из форка обратно в encoding/xml
     - Сейчас это реализовано для большинства структур (такие как xml.StartElement, xml.Name, xml.Attr, xml.Token и прочие), но не исключаю что ещё есть что можно перенести
 
 ### Проброс xmlutils.Decoder через интерфейс xml.UnmarshalXML
