@@ -9,7 +9,9 @@ This don't stable version
 
 ## Особенности реализации
 
-- [x] Игнорировать prefix в xml tag `xml:"prefix:name"` воспринимается в Unmarshal как `xml:"name"`
+- [x] Игнорировать prefix в xml tag
+
+   Теперь `xml:"prefix:name"` воспринимается в Unmarshal как `xml:"name"`
 
    Это нужно для одинакового поведения Unmarshal/Marshal с префиксными тегами
 
