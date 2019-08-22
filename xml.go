@@ -122,7 +122,11 @@ func NewDecoder(r io.Reader) *Decoder {
 }
 
 // NewTokenDecoder creates a new XML parser using an underlying token stream.
-func NewTokenDecoder(t xml.TokenReader) *Decoder {
+// Добавляем первый токен из tokens в набор xml.TokenReader
+func NewTokenDecoder(t xml.TokenReader, tokens ...xml.StartElement) *Decoder {
+	if len(tokens) > 0 {
+		t = NewTokenReader(t, tokens[0])
+	}
 	// Is it already a Decoder?
 	if d, ok := t.(*Decoder); ok {
 		return d

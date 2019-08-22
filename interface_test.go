@@ -21,10 +21,8 @@ type MyCharData2 struct {
     4 - token: <nil> EOF
 */
 func (m *MyCharData2) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	i := 0
 	for {
 		t, err := d.Token()
-		i++
 		if err == io.EOF { // found end of element
 			break
 		}

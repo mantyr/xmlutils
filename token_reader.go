@@ -18,6 +18,20 @@ func (t *tokenReader) Token() (xml.Token, error) {
 	return t.r.Token()
 }
 
+// NewTokenReader добавляем xml.StartElement в набор xml.TokenReader
+func NewTokenReader(
+	r xml.TokenReader,
+	start xml.StartElement,
+) (
+	xml.TokenReader,
+) {
+	return &tokenReader{
+		start: &start,
+		r:     r,
+	}
+}
+
+// Используется для вызова UnmarshalXML(*xml.Decoder, xml.StartElement) c текущий Decoder
 type unmarshalerWrapper struct{
 	data xml.Unmarshaler
 }
