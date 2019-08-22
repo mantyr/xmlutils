@@ -2,8 +2,8 @@ package xmlutils_test
 
 import (
 	"fmt"
-
 	"encoding/xml"
+
 	"github.com/mantyr/xmlutils"
 )
 
