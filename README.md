@@ -8,7 +8,8 @@
 This don't stable version
 
 + добавлен prefix:tag
-- требуется вынести все структуры в encoding/xml, что бы не конфликтовать с XMLName xml.Name и прочим
++ добавлена поддержка xml.Unmarshaler
++ частично вынесены структуры в encoding/xml
 
 ## Installation
 
