@@ -33,8 +33,8 @@ package main
 
 import (
 	"fmt"
-
 	"encoding/xml"
+
 	"github.com/mantyr/xmlutils"
 )
 
