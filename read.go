@@ -301,6 +301,7 @@ func (d *Decoder) unmarshalAttr(val reflect.Value, attr xml.Attr) error {
 var (
 	attrType            = reflect.TypeOf(xml.Attr{})
 	unmarshalerType     = reflect.TypeOf((*Unmarshaler)(nil)).Elem()
+	unmarshalerTypeOld  = reflect.TypeOf((*xml.Unmarshaler)(nil)).Elem()
 	unmarshalerAttrType = reflect.TypeOf((*UnmarshalerAttr)(nil)).Elem()
 	textUnmarshalerType = reflect.TypeOf((*encoding.TextUnmarshaler)(nil)).Elem()
 )
@@ -337,6 +338,12 @@ func (d *Decoder) unmarshal(val reflect.Value, start *xml.StartElement) error {
 		val = val.Elem()
 	}
 
+	if val.CanInterface() && val.Type().Implements(unmarshalerTypeOld) {
+		value := &unmarshalerWrapper{
+			data: val.Interface().(xml.Unmarshaler),
+		}
+		return d.unmarshalInterface(value, start)
+	}
 	if val.CanInterface() && val.Type().Implements(unmarshalerType) {
 		// This is an unmarshaler with a non-pointer receiver,
 		// so it's likely to be incorrect, but we do what we're told.
@@ -345,6 +352,12 @@ func (d *Decoder) unmarshal(val reflect.Value, start *xml.StartElement) error {
 
 	if val.CanAddr() {
 		pv := val.Addr()
+		if pv.CanInterface() && pv.Type().Implements(unmarshalerTypeOld) {
+			value := &unmarshalerWrapper{
+				data: pv.Interface().(xml.Unmarshaler),
+			}
+			return d.unmarshalInterface(value, start)
+		}
 		if pv.CanInterface() && pv.Type().Implements(unmarshalerType) {
 			return d.unmarshalInterface(pv.Interface().(Unmarshaler), start)
 		}
