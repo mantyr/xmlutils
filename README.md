@@ -7,27 +7,27 @@
 
 This don't stable version
 
-## Особенности реализации
+## Implementation features
 
-- [x] Игнорировать prefix в xml tag
+- [x] Ignore prefix in xml tag
 
-   Теперь `xml:"prefix:name"` воспринимается в Unmarshal как `xml:"name"`
+   Now `xml:"prefix:name"` is interpreted by Unmarshal as `xml:"name"`
 
-   Это нужно для одинакового поведения Unmarshal/Marshal с префиксными тегами
+   This is necessary for the same behavior of Unmarshal/Marshal with prefix tags
 
-- [x] Добавить поддержку xml.Unmarshaler
+- [x] Add support for xml.Unmarshaler
 
-   Теперь нет необходимости править все реализации xml.Unmarshaler на xmlutils.Unmarshaler
+   Now there is no need to change all implementations of xml.Unmarshaler to xmlutils.Unmarshaler
 
-- [x] Добавить проброс xmlutils.Decoder в xml.Unmarshaler
+- [x] Add forwarding xmlutils.Decoder to xml.Unmarshaler
 
-   Теперь в не зависимости от того как был запущен Unmarshal (от xml или от xmlutils) у вас есть возможность использовать xmlutils там где это нужно
+   Now, regardless of how Unmarshal was launched (from xml or from xmlutils), you have the opportunity to use xmlutils where necessary
 
-- [ ] Вынести все имеющиеся структуры из форка обратно в encoding/xml
+- [ ] Move all existing structures from the fork back to encoding/xml
 
-   Сейчас это реализовано для большинства структур (такие как xml.StartElement, xml.Name, xml.Attr, xml.Token и прочие), но не исключаю что ещё есть что можно перенести
+   Now this is implemented for most structures (such as xml.StartElement, xml.Name, xml.Attr, xml.Token and others), but I do not exclude that there is something else that can be transferred
 
-### Проброс xmlutils.Decoder через интерфейс xml.UnmarshalXML
+### Forwarding xmlutils.Decoder via the xml.UnmarshalXML interface
 ```GO
 package main
 
